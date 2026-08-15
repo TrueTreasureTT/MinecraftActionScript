@@ -1,0 +1,11 @@
+{
+	"name": "MinecraftActionScript",
+	"url": "https://github.com/TrueTreasureTT/MinecraftActionScript",
+	"license": "MIT",
+	"tags": ["voxel", "blocks", "game", "minecraft-like"],
+	"description": "Standalone block-type registry for voxel games: block IDs, texture-atlas tile coordinates, and solidity/transparency flags. Extracted from the Voxel PE project so the block system can be reused independently.",
+	"classPath": "src",
+	"version": "0.9.0",
+	"releasenote": "Initial extraction: 22 block types (terrain, ores, glass, ice, etc) with 6-face atlas UV mapping.",
+	"contributors": ["yourname"]
+}
