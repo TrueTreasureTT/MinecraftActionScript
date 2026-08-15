@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+	<!-- _________________________________ Meta _________________________________ -->
+
+	<meta title="Voxel PE" package="com.voxelpe.game" version="0.1.0" company="VoxelPE" />
+	<app main="Main" path="export" file="VoxelPE" />
+
+	<!-- _________________________________ Output _______________________________ -->
+
+	<!-- HTML5 is the primary target for this build -->
+	<set name="BUILD_DIR" value="build" />
+	<window width="960" height="640" fps="60" background="#7EC0EE" hardware="true" vsync="false" />
+	<window unless="html5" fullscreen="false" />
+
+	<!-- Mobile-style resize behavior for the web target -->
+	<window if="html5" resizable="true" />
+
+	<!-- _________________________________ Language ______________________________ -->
+
+	<source path="src" />
+
+	<!-- _________________________________ Dependencies __________________________ -->
+
+	<haxelib name="openfl" />
+	<haxelib name="lime" />
+
+	<!-- _________________________________ Assets ________________________________ -->
+
+	<assets path="assets/images" rename="img" if="html5" />
+	<assets path="assets/images" rename="img" unless="html5" />
+
+	<!-- _________________________________ Compiler flags ________________________ -->
+
+	<haxedef name="openfl-html5-doctype" value="html" />
+	<haxedef name="permissions" value="false" />
+
+	<!-- Keep math fast: disable range checks in release, but leave them on for now -->
+	<haxedef name="safeMode" if="debug" />
+
+</project>
