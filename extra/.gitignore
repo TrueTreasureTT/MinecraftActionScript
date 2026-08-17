@@ -1,0 +1,21 @@
+# Compiled output
+bin/
+*.swf
+*.swc
+ 
+# mxmlc/compiler cache and incremental-build junk
+*.cache
+.sconfigs/
+ 
+# OS junk
+.DS_Store
+Thumbs.db
+ 
+# Editor/IDE
+.vscode/
+.idea/
+*.iml
+# FlashDevelop project files, if you open this in FlashDevelop
+obj/
+*.as3proj.user
+ 
