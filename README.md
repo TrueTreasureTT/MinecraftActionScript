@@ -8,3 +8,5 @@ Doesn't actually look like this lol :)
 I can't connect this to Mojang's real friends list or real Minecraft accounts — that's not a thing Mojang exposes to third-party fan projects, and building something that implied it did would be misleading.
 
 What I can build is a genuinely working local chat system — either same-browser-tab messaging for testing, or LAN chat between people actually running the game on the same network. 
+
+This game might be 3D or 2D either way I tried my best... :) 
