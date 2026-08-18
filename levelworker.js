@@ -1,0 +1,337 @@
+function Distort(t, i) {
+    this.source = t,
+    this.distort = i,
+    this.getValue = function(t, i) {
+        return this.source.getValue(t + this.distort.getValue(t, i), i)
+    }
+}
+function ImprovedNoise(t) {
+    var i = function(t) {
+        return t * t * t * (t * (6 * t - 15) + 10)
+    }
+      , e = function(t, i, e) {
+        return i + t * (e - i)
+    }
+      , s = function(t, i, e, s) {
+        var n = (t &= 15) < 8 ? i : e
+          , r = t < 4 ? e : 12 != t && 14 != t ? s : i;
+        return (1 & t ? -n : n) + (2 & t ? -r : r)
+    };
+    this.p = [];
+    for (var n = 0; n < 256; n++)
+        this.p[n] = n;
+    for (n = 0; n < 256; n++) {
+        var r = Math.round(t * (256 - n)) + n
+          , o = this.p[n];
+        this.p[n] = this.p[r],
+        this.p[r] = o,
+        this.p[n + 256] = this.p[n]
+    }
+    this.getValue = function(t, n) {
+        var r, o = n, a = t, h = 255 & Math.floor(t), l = 255 & Math.floor(n), f = 255 & Math.floor(0);
+        a -= Math.floor(a),
+        o -= Math.floor(o),
+        r = 0 - Math.floor(0);
+        var z = i(a)
+          , x = i(o)
+          , p = i(r)
+          , u = this.p[h] + l
+          , S = this.p[u] + f;
+        return u = this.p[u + 1] + f,
+        h = this.p[h + 1] + l,
+        l = this.p[h] + f,
+        h = this.p[h + 1] + f,
+        e(p, e(x, e(z, s(this.p[S], a, o, r), s(this.p[l], a - 1, o, r)), e(z, s(this.p[u], a, o - 1, r), s(this.p[h], a - 1, o - 1, r))), e(x, e(z, s(this.p[S + 1], a, o, r - 1), s(this.p[l + 1], a - 1, o, r - 1)), e(z, s(this.p[u + 1], a, o - 1, r - 1), s(this.p[h + 1], a - 1, o - 1, r - 1))))
+    }
+}
+function PerlinNoise(t, i) {
+    for (var e = [], s = 0; s < 8; ++s)
+        e[s] = new ImprovedNoise(t);
+    this.getValue = function(t, i) {
+        for (var s = 0, n = 1, r = 0; r < 8; r++)
+            s += e[r].getValue(t * n, i * n) / n,
+            n /= 2;
+        return s
+    }
+}
+function Random(t) {
+    this._seed = t % 2147483647,
+    this._seed <= 0 && (this._seed += 2147483646)
+}
+Random.prototype.next = function() {
+    return this._seed = 16807 * this._seed % 2147483647
+}
+,
+Random.prototype.nextInt = function(t) {
+    return Math.floor(this.nextFloat() * t)
+}
+,
+Random.prototype.nextFloat = function(t, i) {
+    return (this.next() - 1) / 2147483646
+}
+;
+var RandomLevel = function() {
+    var t = {
+        string: "",
+        percent: 0,
+        tiles: null
+    };
+    this.createLevel = function(i, e, s, n) {
+        var r = new Random(i);
+        this.xSize = e,
+        this.zSize = s,
+        this.ySize = 64,
+        this.random = r.nextFloat(),
+        this.tiles = [],
+        this.fillQueue = [],
+        this.grow = function(i) {
+            for (var e = this.xSize, s = this.zSize, n = this.ySize, r = new PerlinNoise(this.random,8), o = new PerlinNoise(this.random,8), a = 0; a < e; ++a) {
+                t.percent = 100 * a / (this.xSize - 1),
+                self.postMessage(t);
+                for (var h = 0; h < s; ++h) {
+                    var l, f, z = r.getValue(a, h) > 8, x = o.getValue(a, h) > 12, p = parseInt(((l = parseInt(i[a + h * e], 10)) * this.zSize + h) * this.xSize + a, 10);
+                    if (7 == (f = 255 & parseInt(this.tiles[((l + 1) * this.zSize + h) * this.xSize + a], 10)) && l <= n / 2 - 1 && x && (this.tiles[p] = 12),
+                    0 == f) {
+                        var u = 1;
+                        l <= n / 2 - 1 && z && (u = 11),
+                        this.tiles[p] = u
+                    }
+                }
+            }
+        }
+        ,
+        this.melt = function() {
+            for (var i = this.xSize * this.zSize * this.ySize / 1e4, e = 0; e < i; ++e) {
+                e % 100 == 0 && (t.percent = 100 * e / (i - 1),
+                self.postMessage(t));
+                var s = r.nextInt(this.xSize)
+                  , n = r.nextInt(this.ySize / 2 - 4) + 16
+                  , o = r.nextInt(this.zSize);
+                0 == this.tiles[(n * this.zSize + o) * this.xSize + s] && this.floodFill(s, n, o, 0, 17)
+            }
+        }
+        ,
+        this.plant = function(i) {
+            for (var e = this.xSize, s = this.xSize * this.zSize / 4e3, n = 0; n < s; ++n) {
+                t.percent = 100 * n / (s - 1),
+                self.postMessage(t);
+                for (var o = r.nextInt(this.xSize), a = r.nextInt(this.zSize), h = 0; h < 20; ++h)
+                    for (var l = o, f = a, z = 0; z < 20; ++z)
+                        if (l += r.nextInt(6) - r.nextInt(6),
+                        f += r.nextInt(6) - r.nextInt(6),
+                        l >= 0 && f >= 0 && l < this.xSize && f < this.zSize) {
+                            var x, p, u, S = i[l + f * e] + 1, v = r.nextInt(3) + 4, d = !0;
+                            for (x = S; x <= S + 1 + v; ++x) {
+                                var c = 1;
+                                for (x >= S + 1 + v - 2 && (c = 2),
+                                p = l - c; p <= l + c && d; ++p)
+                                    for (u = f - c; u <= f + c && d; ++u)
+                                        p >= 0 && x >= 0 && u >= 0 && p < this.xSize && x < this.ySize && u < this.zSize ? 255 & this.tiles[(x * this.zSize + u) * this.xSize + p] && (d = !1) : d = !1
+                            }
+                            if (d && (x = (S * this.zSize + f) * this.xSize + l,
+                            1 == (255 & this.tiles[((S - 1) * this.zSize + f) * this.xSize + l]) && S < this.ySize - v - 1)) {
+                                for (this.tiles[x - 1 * this.xSize * this.zSize] = 3,
+                                p = S - 3 + v; p <= S + v; ++p) {
+                                    u = p - (S + v);
+                                    for (var g = parseInt(1 - u / 2, 10), M = l - g; M <= l + g; ++M)
+                                        for (var F = parseInt(M - l, 10), I = f - g; I <= f + g; ++I) {
+                                            var m = parseInt(I - f, 10);
+                                            (Math.abs(F) != g || Math.abs(m) != g || 0 != r.nextInt(2) && 0 != u) && (this.tiles[(p * this.zSize + I) * this.xSize + M] = 14)
+                                        }
+                                }
+                                for (p = 0; p < v; ++p)
+                                    this.tiles[x + p * this.xSize * this.zSize] = 13
+                            }
+                        }
+            }
+        }
+        ,
+        this.placeOre = function(i, e, s, n) {
+            n = this.xSize;
+            for (var o = this.zSize, a = this.ySize, h = n * o * a / 256 / 64 * e / 100, l = 0; l < h; ++l) {
+                t.percent = 100 * l / (h - 1) / 4 + 100 * s / 4,
+                self.postMessage(t);
+                for (var f = r.nextFloat() * n, z = r.nextFloat() * a, x = r.nextFloat() * o, p = parseInt(75 * (r.nextFloat() + r.nextFloat()) * e / 100, 10), u = 3.141592653589793 * r.nextFloat() * 2, S = 0, v = 3.141592653589793 * r.nextFloat() * 2, d = 0, c = 0; c < p; ++c) {
+                    f += Math.sin(u) * Math.cos(v),
+                    x += Math.cos(u) * Math.cos(v),
+                    z += Math.sin(v),
+                    u += .2 * S,
+                    S = (S *= .9) + (r.nextFloat() - r.nextFloat()),
+                    v = .5 * (v + .5 * d),
+                    d = (d *= .9) + (r.nextFloat() - r.nextFloat());
+                    for (var g = Math.sin(3.141592653589793 * c / p) * e / 100 + 1, M = Math.round(f - g); M <= Math.round(f + g); ++M)
+                        for (var F = Math.round(z - g); F <= Math.round(z + g); ++F)
+                            for (var I = Math.round(x - g); I <= Math.round(x + g); ++I) {
+                                var m = M - f
+                                  , w = F - z
+                                  , N = I - x;
+                                if (m * m + w * w * 2 + N * N < g * g && M >= 1 && F >= 1 && I >= 1 && M < this.xSize - 1 && F < this.ySize - 1 && I < this.zSize - 1) {
+                                    var y = parseInt((F * this.zSize + I) * this.xSize + M, 10);
+                                    2 == this.tiles[y] && (this.tiles[y] = i)
+                                }
+                            }
+                }
+            }
+        }
+        ,
+        this.floodFill = function(t, i, s, r, o) {
+            for (var a = 1, h = 1; 1 << a < e; )
+                a++;
+            for (; 1 << h < n; )
+                h++;
+            var l = this.zSize - 1
+              , f = this.xSize - 1
+              , z = 1;
+            this.fillQueue[0] = ((i << h) + s << a) + t;
+            for (var x = 0, p = this.xSize * this.zSize; z > 0; ) {
+                --z;
+                var u = this.fillQueue[z]
+                  , S = u >> a & l
+                  , v = u >> a + h
+                  , d = 0
+                  , c = 0;
+                for (c = d = u & f; d > 0 && 0 == this.tiles[u - 1]; --u)
+                    --d;
+                for (; c < this.xSize && 0 == this.tiles[u + c - d]; )
+                    ++c;
+                (u >> a & l) == S && u >> a + h == v || console.log("hoooly fuck");
+                var g = !1
+                  , M = !1
+                  , F = !1;
+                for (x += c - d; d < c; ++d) {
+                    var I;
+                    if (this.tiles[u] = o,
+                    S > 0 && ((I = 0 == this.tiles[u - this.xSize]) && !g && (this.fillQueue[z++] = u - this.xSize),
+                    g = I),
+                    S < this.zSize - 1 && ((I = 0 == this.tiles[u + this.xSize]) && !M && (this.fillQueue[z++] = u + this.xSize),
+                    M = I),
+                    v > 0) {
+                        var m = this.tiles[u - p];
+                        17 == o && 7 == m && (this.tiles[u - p] = 2),
+                        (I = 0 == m) && !F && (this.fillQueue[z++] = u - p),
+                        F = I
+                    }
+                    ++u
+                }
+            }
+            return x
+        }
+        ,
+        t.string = "Raising..";
+        var o, a, h = new Distort(new PerlinNoise(this.random,8),new PerlinNoise(this.random,8)), l = new Distort(new PerlinNoise(this.random,8),new PerlinNoise(this.random,8)), f = new PerlinNoise(this.random,8), z = [], x = 1.3;
+        for (o = 0; o < e; ++o)
+            for (t.percent = 100 * o / (e - 1),
+            self.postMessage(t),
+            a = 0; a < s; ++a) {
+                var p, u = h.getValue(o * x, a * x) / 8 - 8, S = l.getValue(o * x, a * x) / 6 + 6;
+                f.getValue(o, a) / 8 > 0 && (S = u),
+                (p = Math.max(u, S) / 2) < 0 && (p *= .8),
+                z[o + a * e] = p
+            }
+        t.string = "Eroding..";
+        var v = z;
+        l = new Distort(new PerlinNoise(this.random,8),new PerlinNoise(this.random,8));
+        var d, c, g, M, F = new Distort(new PerlinNoise(this.random,8),new PerlinNoise(this.random,8));
+        for (d = 0; d < e; ++d)
+            for (t.percent = 100 * d / (e - 1),
+            self.postMessage(t),
+            c = 0; c < s; ++c) {
+                var I = l.getValue(d << 1, c << 1) / 8;
+                g = F.getValue(d << 1, c << 1) > 0 ? 1 : 0,
+                I > 2 && (M = ((v[d + c * e] - g) / 2 << 1) + g,
+                v[d + c * e] = M)
+            }
+        t.string = "Soiling..",
+        v = z;
+        var m = this.xSize
+          , w = this.zSize;
+        d = this.ySize;
+        var N, y, P = new PerlinNoise(this.random,8);
+        for (o = 0; o < m; ++o)
+            for (t.percent = 100 * o / (e - 1),
+            self.postMessage(t),
+            a = 0; a < w; ++a)
+                for (g = P.getValue(o, a) / 24 - 4,
+                N = (M = v[o + a * m] + d / 2) + g,
+                v[o + a * m] = Math.max(M, N),
+                y = 0; y < d; ++y) {
+                    var V = (y * s + a) * e + o
+                      , R = 0;
+                    y <= M && (R = 3),
+                    y <= N && (R = 2),
+                    this.tiles[V] = R
+                }
+        for (t.string = "Carving..",
+        o = (w = this.xSize) * (d = this.zSize) * (c = this.ySize) / 256 / 64,
+        a = 0; a < o; ++a) {
+            t.percent = 100 * a / (o - 1) / 4,
+            self.postMessage(t);
+            var Q = r.nextFloat() * w
+              , D = r.nextFloat() * c
+              , L = r.nextFloat() * d;
+            y = 75 * (r.nextFloat() + r.nextFloat());
+            for (var _ = 3.141592653589793 * r.nextFloat() * 2, O = 0, G = 3.141592653589793 * r.nextFloat() * 2, b = 0, E = 0; E < y; ++E)
+                if (Q += Math.sin(_) * Math.cos(G),
+                L += Math.cos(_) * Math.cos(G),
+                D += Math.sin(G),
+                _ += .2 * O,
+                O = (O *= .9) + (r.nextFloat() - r.nextFloat()),
+                G = .5 * (G + .5 * b),
+                b = (b *= .9) + (r.nextFloat() - r.nextFloat()),
+                r.nextFloat() >= .3)
+                    for (var k = Q + 4 * r.nextFloat() - 2, C = D + 4 * r.nextFloat() - 2, W = L + 4 * r.nextFloat() - 2, j = 2.5 * Math.sin(3.141592653589793 * E / y) + 1, q = parseInt(k - j, 10); q <= parseInt(k + j, 10); ++q)
+                        for (var A = parseInt(C - j, 10); A <= parseInt(C + j, 10); ++A)
+                            for (var B = W - j; B <= W + j; ++B) {
+                                var H = q - k
+                                  , J = A - C
+                                  , K = B - W;
+                                if (H * H + J * J * 2 + K * K < j * j && q >= 1 && A >= 1 && B >= 1 && q < e - 1 && A < n - 1 && B < s - 1) {
+                                    var T = parseInt((A * s + B) * e + q, 10);
+                                    2 == this.tiles[T] && (this.tiles[T] = 0)
+                                }
+                            }
+        }
+        this.placeOre(20, 90, 1, 4),
+        this.placeOre(19, 70, 2, 4),
+        this.placeOre(18, 50, 3, 4),
+        t.string = "Watering..",
+        r.nextFloat();
+        var U = 0;
+        o = 7;
+        var X = 29;
+        for (e >= 256 && (X = 92),
+        e >= 512 && (X = 219),
+        a = 0; a < e; ++a)
+            U = U + this.floodFill(a, n / 2 - 1 + X, 0, 0, o) + this.floodFill(a, n / 2 - 1, s - 1 + X, 0, o);
+        for (a = 0; a < s; ++a)
+            U = U + this.floodFill(0, n / 2 - 1 + X, a, 0, o) + this.floodFill(e - 1, n / 2 - 1 + X, a, 0, o);
+        for (a = e * s / 200,
+        g = 0; g < a; ++g)
+            g % 100 == 0 && (t.percent = 100 * g / (a - 1),
+            self.postMessage(t)),
+            M = r.nextInt(e),
+            N = n / 2 - 1 - r.nextInt(3) + X,
+            y = r.nextInt(s),
+            0 == this.tiles[(N * s + y) * e + M] && (U += this.floodFill(M, N, y, 0, o));
+        t.percent = 100,
+        self.postMessage(t),
+        t.string = "Melting..",
+        this.melt(),
+        t.string = "Growing..",
+        this.grow(z),
+        t.string = "Planting..",
+        this.plant(z),
+        t.tiles = this.tiles,
+        t.string = "",
+        self.postMessage(t)
+    }
+};
+function startGeneration(t) {
+    var i = new RandomLevel
+      , e = t.worldSize
+      , s = t.worldSize;
+    i.createLevel(t.seed, e, s, 64)
+}
+self.addEventListener("message", function(t) {
+    startGeneration(t.data)
+}, !1);
